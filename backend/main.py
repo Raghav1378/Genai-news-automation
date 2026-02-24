@@ -60,14 +60,42 @@ except Exception:
     VECTOR_AVAILABLE = False
 
 
+# ── Keep-Alive Self-Ping (prevents Render free tier spin-down) ────
+import asyncio
+import httpx
+
+RENDER_URL = os.getenv("RENDER_EXTERNAL_URL", "")  # Render sets this automatically
+
+async def keep_alive():
+    """Ping our own /health endpoint every 13 min to prevent spin-down."""
+    await asyncio.sleep(60)  # wait for server to fully start
+    async with httpx.AsyncClient() as client:
+        while True:
+            try:
+                url = RENDER_URL or "http://localhost:8000"
+                await client.get(f"{url}/health", timeout=10)
+                print("[KeepAlive] Ping OK")
+            except Exception:
+                pass
+            await asyncio.sleep(780)  # 13 minutes
+
+
 # ── Lifespan ──────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    # Start keep-alive background task
+    task = asyncio.create_task(keep_alive())
     yield
+    task.cancel()
 
 
 app = FastAPI(title="News Intelligence API", version="3.0.0", lifespan=lifespan)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 # ── CORS ──────────────────────────────────────────────────
 app.add_middleware(
