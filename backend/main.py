@@ -1,32 +1,3 @@
-"""
-FastAPI Backend for News Intelligence System — v3
-──────────────────────────────────────────────────
-Endpoints:
-  POST /api/search              — run news query (Groq + Gemini + FactCheck)
-  POST /api/search/deep         — recursive deep research mode
-  GET  /api/history             — list all past searches
-  GET  /api/history/{id}        — get a specific search
-  DELETE /api/history/{id}      — delete one entry
-  DELETE /api/history           — clear all history
-  GET  /api/blacklist           — list blacklisted domains
-  POST /api/blacklist           — add a domain to blacklist
-  DELETE /api/blacklist/{id}    — remove a blacklisted domain
-  GET  /api/watchlist           — list watched topics
-  POST /api/watchlist           — add a topic to watch
-  DELETE /api/watchlist/{id}    — remove a watched topic
-  GET  /api/trends              — sentiment/confidence trends over time
-  GET  /api/entities/network    — entity co-occurrence network
-  GET  /api/export/pdf/{id}     — download PDF report
-  POST /api/briefing/generate   — generate email digest from watchlist
-  GET  /api/briefing/preview    — preview email digest HTML
-  GET  /api/email-settings      — get SMTP email settings
-  POST /api/email-settings      — save SMTP email settings
-  GET  /api/languages           — list supported languages
-  POST /api/memory/search       — semantic search over past analyses
-  GET  /api/memory/stats        — vector store stats
-  POST /api/voice/briefing/{id} — generate voice briefing script
-"""
-
 import os
 from contextlib import asynccontextmanager
 from typing import Optional
