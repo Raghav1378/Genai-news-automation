@@ -17,10 +17,11 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 groq_client = None
 
 def _get_groq():
-    global groq_client
+    """Create a Groq client from the current env var (set per-request by middleware)."""
     key = os.getenv("GROQ_API_KEY", "")
-    groq_client = Groq(api_key=key) if key else None
-    return groq_client
+    if not key:
+        return None
+    return Groq(api_key=key)
 
 FACT_CHECK_PROMPT = """You are a rigorous fact-checking analyst. Given a news analysis and its sources, extract the key factual claims and assess each one.
 

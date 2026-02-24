@@ -111,31 +111,22 @@ app.add_middleware(
 @app.middleware("http")
 async def inject_api_keys(request: Request, call_next):
     """
-    Reads X-Groq-Key and X-Gemini-Key headers and overrides
-    module-level API clients so each user uses their own keys.
-    Falls back to .env keys if headers are not provided.
+    Reads X-Groq-Key and X-Gemini-Key headers and sets them as
+    environment variables so all modules pick them up via os.getenv().
+    Falls back to server .env keys if headers are not provided.
     """
-    import news_engine
     import gemini_engine
-    import fact_checker
-    import translate_engine
     import vector_store
-    from groq import Groq
 
     groq_key = request.headers.get("x-groq-key") or os.getenv("GROQ_API_KEY", "")
     gemini_key = request.headers.get("x-gemini-key") or os.getenv("GOOGLE_API_KEY", "")
 
-    # Override Groq clients
+    # Set env vars so all lazy-init functions (_get_groq, _get_gemini etc) pick them up
     if groq_key:
-        news_engine.groq_client = Groq(api_key=groq_key)
-        fact_checker.groq_client = Groq(api_key=groq_key)
-
-    # Override Gemini key for lazy-init modules
+        os.environ["GROQ_API_KEY"] = groq_key
     if gemini_key:
         os.environ["GOOGLE_API_KEY"] = gemini_key
-        # Reset cached models so they re-init with new key
-        gemini_engine._gemini_model = None
-        translate_engine._get_gemini = translate_engine._get_gemini  # keep original
+        gemini_engine._gemini_model = None   # force re-init with new key
         vector_store._embed_model = None
 
     response = await call_next(request)

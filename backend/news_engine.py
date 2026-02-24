@@ -28,11 +28,11 @@ tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
 groq_client = None
 
 def _get_groq():
-    global groq_client
+    """Create a Groq client from the current env var (set per-request by middleware)."""
     key = os.getenv("GROQ_API_KEY", "")
-    if not groq_client or groq_client.api_key != key:
-        groq_client = Groq(api_key=key) if key else None
-    return groq_client
+    if not key:
+        return None
+    return Groq(api_key=key)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SYSTEM PROMPT — instructs the LLM to produce structured metadata
