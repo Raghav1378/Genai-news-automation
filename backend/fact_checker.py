@@ -12,7 +12,15 @@ from dotenv import load_dotenv
 from groq import Groq
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# Lazy init — don't crash if GROQ_API_KEY is missing at startup
+groq_client = None
+
+def _get_groq():
+    global groq_client
+    key = os.getenv("GROQ_API_KEY", "")
+    groq_client = Groq(api_key=key) if key else None
+    return groq_client
 
 FACT_CHECK_PROMPT = """You are a rigorous fact-checking analyst. Given a news analysis and its sources, extract the key factual claims and assess each one.
 
@@ -48,7 +56,10 @@ def fact_check_analysis(analysis: str, sources: list[dict] = None) -> list[dict]
             source_info += f"\nSource {i}: {src.get('title', '')} ({src.get('url', '')})"
 
     try:
-        resp = groq_client.chat.completions.create(
+        client = _get_groq()
+        if not client:
+            return []
+        resp = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": FACT_CHECK_PROMPT},
@@ -95,7 +106,10 @@ def balance_bias(query: str, analysis: str, current_bias: str) -> dict:
         return {"perspective": "", "balance_note": "Coverage appears balanced."}
 
     try:
-        resp = groq_client.chat.completions.create(
+        client = _get_groq()
+        if not client:
+            return {"perspective": "", "balance_note": "Groq unavailable"}
+        resp = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": BIAS_BALANCE_PROMPT.format(bias=current_bias)},

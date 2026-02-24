@@ -20,10 +20,19 @@ from groq import Groq
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
-groq_client = Groq(api_key=GROQ_API_KEY)
+
+# Groq client — lazy init so missing key doesn't crash at import
+groq_client = None
+
+def _get_groq():
+    global groq_client
+    key = os.getenv("GROQ_API_KEY", "")
+    if not groq_client or groq_client.api_key != key:
+        groq_client = Groq(api_key=key) if key else None
+    return groq_client
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SYSTEM PROMPT — instructs the LLM to produce structured metadata
@@ -128,7 +137,10 @@ def _compute_source_confidence(tavily_response: dict) -> float:
 def refine_with_groq(query: str, context: str) -> str:
     """Send query + context to Groq LLM for deep analysis."""
     try:
-        chat_completion = groq_client.chat.completions.create(
+        client = _get_groq()
+        if not client:
+            return "[Groq unavailable — no API key provided]"
+        chat_completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": ANALYSIS_SYSTEM_PROMPT},
@@ -232,7 +244,10 @@ def analyse(query: str, exclude_domains: list = None, deep_research: bool = Fals
 def _generate_sub_queries(original_query: str, analysis: str) -> list:
     """Use Groq to generate 2 follow-up verification queries."""
     try:
-        resp = groq_client.chat.completions.create(
+        client = _get_groq()
+        if not client:
+            return []
+        resp = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
