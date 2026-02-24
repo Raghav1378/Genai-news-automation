@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuralPulse — AI News Intelligence</title>
+    <meta name="description"
+        content="Real-time AI-powered news intelligence with sentiment analysis, entity extraction, multi-model verification, fact-checking, and confidence scoring." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/styles.css" />
+</head>
+
+<body>
+    <!-- ─── API KEY GATE ──────────────────────────────────────── -->
+    <div class="key-gate" id="keyGate">
+        <div class="key-gate-bg"></div>
+        <div class="key-gate-card">
+            <div class="key-gate-logo">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="url(#gateGrad)" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="gateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#6366f1" />
+                            <stop offset="100%" stop-color="#a855f7" />
+                        </linearGradient>
+                    </defs>
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                <h1 class="key-gate-title">NeuralPulse</h1>
+                <p class="key-gate-subtitle">AI News Intelligence System</p>
+            </div>
+
+            <div class="key-gate-info">
+                <p>Enter your API keys to get started. You need <strong>at least one</strong> key, but both are
+                    recommended for full features.</p>
+            </div>
+
+            <div class="key-gate-form">
+                <div class="key-field">
+                    <label for="gateGroqKey">
+                        <span class="key-dot groq"></span> Groq API Key
+                        <span class="key-badge">Required for analysis</span>
+                    </label>
+                    <input type="password" id="gateGroqKey" placeholder="gsk_..." autocomplete="off" />
+                    <a class="key-link" href="https://console.groq.com/keys" target="_blank">Get free key →</a>
+                </div>
+
+                <div class="key-field">
+                    <label for="gateGeminiKey">
+                        <span class="key-dot gemini"></span> Google Gemini API Key
+                        <span class="key-badge">Required for cross-verification</span>
+                    </label>
+                    <input type="password" id="gateGeminiKey" placeholder="AIza..." autocomplete="off" />
+                    <a class="key-link" href="https://aistudio.google.com/apikey" target="_blank">Get free key →</a>
+                </div>
+
+                <div class="key-status" id="keyStatus"></div>
+
+                <button class="key-submit-btn" id="keySubmitBtn" onclick="validateAndEnter()">
+                    <span id="keySubmitText">🔓 Enter System</span>
+                </button>
+
+                <p class="key-privacy">🔒 Keys are stored only in your browser session. Never sent to our servers or
+                    logged.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SIDEBAR ─────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <span class="logo-text">NeuralPulse</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <button class="new-search-btn" id="newSearchBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Search
+        </button>
+
+        <!-- Memory Search -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <h3>🧠 Memory</h3>
+            </div>
+            <div class="memory-search-row">
+                <input type="text" id="memoryInput" placeholder="Search past analyses…" />
+                <button class="add-btn" id="memorySearchBtn" title="Search memory">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="memory-results" id="memoryResults"></div>
+        </div>
+
+        <!-- Watchlist Section -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <h3>📡 Watchlist</h3>
+                <button class="add-btn" id="addWatchBtn" title="Add topic">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="watchlist-items" id="watchlistItems">
+                <p class="empty-text" id="watchlistEmpty">No watched topics</p>
+            </div>
+            <button class="briefing-btn" id="generateBriefingBtn" title="Generate email briefing from watchlist">
+                📧 Generate Briefing
+            </button>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section">
+            <div class="history-header">
+                <h3>Search History</h3>
+                <button class="clear-btn" id="clearHistoryBtn" title="Clear all history">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="history-empty" id="historyEmpty">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <p>No searches yet</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="settings-btn" id="settingsBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+                Settings
+            </button>
+            <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle light/dark mode">
+                <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                <span class="theme-label">Light Mode</span>
+            </button>
+            <div class="powered-by">
+                <span class="dot tavily"></span> Tavily
+                <span class="dot groq"></span> Groq
+                <span class="dot gemini"></span> Gemini
+            </div>
+        </div>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ────────────────────────────────────── -->
+    <main class="main-content" id="mainContent">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <!-- HERO / SEARCH STATE -->
+        <div class="hero-state" id="heroState">
+            <div class="hero-glow"></div>
+            <h1 class="hero-title"><span class="gradient-text">AI News Intelligence</span></h1>
+            <p class="hero-subtitle">Real-time news · Deep AI analysis · Multi-model verification · Fact checking ·
+                Global coverage</p>
+
+            <div class="search-container" id="searchContainer">
+                <div class="search-box">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Ask about any news topic..." autocomplete="off"
+                        spellcheck="false" />
+                    <select class="language-select" id="languageSelect" title="Search language">
+                        <option value="en">🌐 EN</option>
+                    </select>
+                    <label class="deep-toggle" title="Enable deep recursive research">
+                        <input type="checkbox" id="deepResearchToggle" />
+                        <span class="toggle-label">🔍 Deep</span>
+                    </label>
+                    <button class="search-btn" id="searchBtn" aria-label="Search">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="suggestion-tags">
+                    <button class="tag" data-query="Latest AI breakthroughs 2026">AI breakthroughs</button>
+                    <button class="tag" data-query="Global stock market trends today">Stock market</button>
+                    <button class="tag" data-query="Space exploration latest missions">Space missions</button>
+                    <button class="tag" data-query="Climate change latest developments">Climate change</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div class="loading-state hidden" id="loadingState">
+            <div class="loading-content">
+                <div class="neural-loader">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring delay-1"></div>
+                    <div class="pulse-ring delay-2"></div>
+                    <div class="loader-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                </div>
+                <h2 class="loading-title">Analysing Intelligence</h2>
+                <div class="loading-steps">
+                    <div class="step active" id="step1">
+                        <div class="step-dot"></div><span>Fetching real-time news via Tavily…</span>
+                    </div>
+                    <div class="step" id="step2">
+                        <div class="step-dot"></div><span>Refining with Groq AI + extracting entities…</span>
+                    </div>
+                    <div class="step" id="step3">
+                        <div class="step-dot"></div><span>Cross-verifying with Google Gemini…</span>
+                    </div>
+                    <div class="step" id="step4">
+                        <div class="step-dot"></div><span>Fact-checking claims & balancing bias…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT STATE -->
+        <div class="result-state hidden" id="resultState">
+            <div class="result-header">
+                <button class="back-btn" id="backBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Back
+                </button>
+                <div class="result-query" id="resultQuery"></div>
+                <div class="result-actions">
+                    <button class="action-btn" id="voiceBriefingBtn" title="Generate Voice Briefing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                        <span>Voice</span>
+                    </button>
+                    <button class="action-btn" id="ttsBtn" title="Read to Me">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <span>Read</span>
+                    </button>
+                    <button class="action-btn" id="pdfBtn" title="Download PDF">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="12"></line>
+                            <polyline points="9 15 12 18 15 15"></polyline>
+                        </svg>
+                        <span>PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Voice Briefing Player -->
+            <div class="voice-player hidden" id="voicePlayer">
+                <div class="voice-player-content">
+                    <button class="voice-play-btn" id="voicePlayBtn">▶</button>
+                    <div class="voice-text" id="voiceText">Generating briefing…</div>
+                    <button class="voice-close-btn" id="voiceCloseBtn">✕</button>
+                </div>
+            </div>
+
+            <!-- Metrics Row: Confidence + Sentiment + Bias -->
+            <div class="metrics-row">
+                <div class="confidence-card metric-card">
+                    <div class="confidence-gauge">
+                        <svg class="gauge-svg" viewBox="0 0 120 120">
+                            <circle class="gauge-bg" cx="60" cy="60" r="52" />
+                            <circle class="gauge-fill" id="gaugeFill" cx="60" cy="60" r="52" />
+                        </svg>
+                        <div class="gauge-value" id="gaugeValue">0</div>
+                    </div>
+                    <div class="metric-meta">
+                        <h3>Confidence</h3>
+                        <p id="confidenceLabel">Calculating…</p>
+                    </div>
+                </div>
+                <div class="sentiment-card metric-card">
+                    <div class="meter-icon" id="sentimentIcon">😐</div>
+                    <div class="metric-meta">
+                        <h3>Sentiment</h3>
+                        <p id="sentimentLabel">Neutral</p>
+                    </div>
+                    <div class="meter-bar-container">
+                        <div class="meter-bar sentiment-bar" id="sentimentBar"></div>
+                    </div>
+                </div>
+                <div class="bias-card metric-card">
+                    <div class="meter-icon" id="biasIcon">⚖️</div>
+                    <div class="metric-meta">
+                        <h3>Bias</h3>
+                        <p id="biasLabel">Center</p>
+                    </div>
+                    <div class="meter-bar-container">
+                        <div class="meter-bar bias-bar" id="biasBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabbed Content -->
+            <div class="tabs-container">
+                <div class="tab-nav">
+                    <button class="tab active" data-tab="analysis">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        Analysis
+                    </button>
+                    <button class="tab" data-tab="factcheck">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Fact Check
+                    </button>
+                    <button class="tab" data-tab="entities">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        Entities
+                    </button>
+                    <button class="tab" data-tab="comparison">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                        Model Comparison
+                    </button>
+                    <button class="tab" data-tab="trends">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        Trends
+                    </button>
+                    <button class="tab" data-tab="sources">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        Sources (<span id="sourceCount">0</span>)
+                    </button>
+                </div>
+
+                <!-- Analysis Tab -->
+                <div class="tab-content active" id="tab-analysis">
+                    <div class="analysis-body" id="analysisBody"></div>
+                    <!-- Bias Balance Section -->
+                    <div class="bias-balance-section hidden" id="biasBalanceSection">
+                        <div class="balance-header">⚖️ Bias Balance — Counter-Perspective</div>
+                        <div class="balance-body" id="biasBalanceBody"></div>
+                    </div>
+                </div>
+
+                <!-- Fact Check Tab -->
+                <div class="tab-content" id="tab-factcheck">
+                    <div class="factcheck-grid" id="factcheckGrid">
+                        <p class="empty-text">No fact-check results.</p>
+                    </div>
+                </div>
+
+                <!-- Entities Tab -->
+                <div class="tab-content" id="tab-entities">
+                    <div class="entities-grid" id="entitiesGrid">
+                        <p class="empty-text">No entities extracted.</p>
+                    </div>
+                </div>
+
+                <!-- Model Comparison Tab -->
+                <div class="tab-content" id="tab-comparison">
+                    <div class="comparison-layout">
+                        <div class="model-column">
+                            <div class="model-header groq-header">
+                                <span class="model-dot groq"></span>
+                                <h4>Groq (Llama 3.3 70B)</h4>
+                                <span class="model-conf" id="groqConf">—%</span>
+                            </div>
+                            <div class="model-body" id="groqBody"></div>
+                        </div>
+                        <div class="model-divider"></div>
+                        <div class="model-column">
+                            <div class="model-header gemini-header">
+                                <span class="model-dot gemini"></span>
+                                <h4>Google Gemini</h4>
+                                <span class="model-conf" id="geminiConf">—%</span>
+                            </div>
+                            <div class="model-body" id="geminiBody"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trends Tab -->
+                <div class="tab-content" id="tab-trends">
+                    <div class="trends-container">
+                        <canvas id="trendsChart" width="700" height="300"></canvas>
+                        <p class="trends-hint" id="trendsHint">Run multiple searches to see trends over time.</p>
+                    </div>
+                </div>
+
+                <!-- Sources Tab -->
+                <div class="tab-content" id="tab-sources">
+                    <div class="sources-grid" id="sourcesGrid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ─── SETTINGS MODAL ──────────────────────────────────── -->
+    <div class="modal-overlay hidden" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" id="closeSettingsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>🚫 Blacklisted Domains</h3>
+                    <p class="settings-desc">Sources from these domains will be excluded from all searches.</p>
+                    <div class="input-row">
+                        <input type="text" id="blacklistInput" placeholder="e.g. example.com" />
+                        <button class="primary-btn" id="addBlacklistBtn">Add</button>
+                    </div>
+                    <div class="domain-list" id="blacklistList"></div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📧 Email Briefing Settings</h3>
+                    <p class="settings-desc">Configure SMTP to receive automated email digests from your watchlist.</p>
+                    <div class="email-settings-form">
+                        <div class="form-row">
+                            <label>SMTP Host</label>
+                            <input type="text" id="smtpHost" placeholder="smtp.gmail.com" />
+                        </div>
+                        <div class="form-row">
+                            <label>SMTP Port</label>
+                            <input type="number" id="smtpPort" value="587" />
+                        </div>
+                        <div class="form-row">
+                            <label>Sender Email</label>
+                            <input type="email" id="senderEmail" placeholder="you@gmail.com" />
+                        </div>
+                        <div class="form-row">
+                            <label>App Password</label>
+                            <input type="password" id="appPassword" placeholder="Gmail App Password" />
+                        </div>
+                        <div class="form-row">
+                            <label>Recipient Email</label>
+                            <input type="email" id="recipientEmail" placeholder="recipient@example.com" />
+                        </div>
+                        <div class="form-row checkbox-row">
+                            <label>
+                                <input type="checkbox" id="emailActive" />
+                                Enable email briefings
+                            </label>
+                        </div>
+                        <button class="primary-btn" id="saveEmailSettingsBtn">Save Email Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── BRIEFING PREVIEW MODAL ─────────────────────────── -->
+    <div class="modal-overlay hidden" id="briefingModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2>📧 Email Briefing Preview</h2>
+                <button class="modal-close" id="closeBriefingBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="briefing-preview" id="briefingPreview"></div>
+                <div class="briefing-actions">
+                    <button class="primary-btn" id="sendBriefingBtn">📤 Send Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CDN: Chart.js for trend charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- CDN: jsPDF for client-side PDF fallback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
